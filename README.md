@@ -22,16 +22,16 @@ Examples
 
 Splines from Points:
 
-![points](points.gif "Splines from Points")
+![points](images/points.gif "Splines from Points")
 
 Fast and Conservative Bounds:
 
-![bounds](bounds.gif "Fast and Conservative Bounds")
+![bounds](images/bounds.gif "Fast and Conservative Bounds")
 
 Closest Point on Spline:
 
-![pick](pick.gif "Closest Point on Spline")
+![pick](images/pick.gif "Closest Point on Spline")
 
 Moving Points on Splines:
 
-![agent](agent.gif "Moving Points on Splines")
+![agent](images/agent.gif "Moving Points on Splines")
