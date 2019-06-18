@@ -73,7 +73,7 @@ namespace
     }
     
     inline bool Larger(const Bounds2f& bb, float t) { Vec2f d = bb.max - bb.min; return d.x > t || d.y > t; }
-    inline bool Larger(const Bounds3f& bb, float t) { Vec3f d = bb.max - bb.min; return d.x > t || d.y > t || d.z < t; }
+    inline bool Larger(const Bounds3f& bb, float t) { Vec3f d = bb.max - bb.min; return d.x > t || d.y > t || d.z > t; }
     inline bool Intersects(const Bounds2f& a, const Bounds2f& b)
     {
         return a.max.x >= b.min.x && a.min.x <= b.max.x
