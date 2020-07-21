@@ -11,6 +11,7 @@
 
 #include <math.h>
 #include <vector>
+#include <cstdlib>
 
 #ifndef SL_ASSERT
     #define SL_ASSERT(X)
