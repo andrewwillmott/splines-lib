@@ -10,6 +10,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <cstdint>
 
 using namespace SplineLib;
 

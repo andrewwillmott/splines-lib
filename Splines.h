@@ -103,7 +103,7 @@ namespace SplineLib
         float    mD2;
     };
 
-    int   FindNearbySplines(const Vec2f& p, int numSplines, const cSpline2 splines[],       vector<cSubSpline2>* nearbySplines, float* smallestFarOut = 0, int maxIter = 2);
+    int   FindNearbySplines(const Vec2f& p, int numSplines, const cSpline2 splines[],       vector<cSubSpline2>* nearbySplines, float* smallestFarOut = nullptr, int maxIter = 2);
     float FindClosestPoint (const Vec2f& p, int numSplines, const cSpline2 splines[], const vector<cSubSpline2>& nearbySplines, int* index);
 
     int   FindSplineIntersections(const cSpline2& spline0, const cSpline2& spline1, int maxResults, float results[][2], float tolerance = 0.1f);
@@ -199,7 +199,7 @@ namespace SplineLib
         float    mD2;
     };
 
-    int   FindNearbySplines(const Vec3f& p, int numSplines, const cSpline3 splines[],       vector<cSubSpline3>* nearbySplines, float* smallestFarOut = 0, int maxIter = 2);
+    int   FindNearbySplines(const Vec3f& p, int numSplines, const cSpline3 splines[],       vector<cSubSpline3>* nearbySplines, float* smallestFarOut = nullptr, int maxIter = 2);
     float FindClosestPoint (const Vec3f& p, int numSplines, const cSpline3 splines[], const vector<cSubSpline3>& nearbySplines, int* index);
 
     int   FindSplineIntersections(const cSpline3& spline0, const cSpline3& spline1, int maxResults, float results[][2], float tolerance = 0.1f);
