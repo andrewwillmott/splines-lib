@@ -1,20 +1,20 @@
 //
-//  File:       SplinesTest.cpp
+// SplinesTest.cpp
 //
-//  Function:   Cubic spline utilities test
+// Cubic spline utilities test
 //
-//  Copyright:  Andrew Willmott 2018
+// Andrew Willmott
 //
 
 // Simple example that exercises the 2D api by creating a run of splines from
 // a set of points, and then querying them in different ways.
 
 
-#include "Splines.h"
+#include "Splines.hpp"
 
 #include <stdio.h>
 
-using namespace SplineLib;
+using namespace SL;
 
 int main(int argc, const char* argv[])
 {
@@ -39,7 +39,7 @@ int main(int argc, const char* argv[])
     };
     const int numPoints = sizeof(points) / sizeof(points[0]);
 
-    cSpline2 splines[numPoints + 1];
+    Spline2 splines[numPoints + 1];
 
     int numSplines = SplinesFromPoints(numPoints, points, numPoints + 1, splines);
     float sumLen = 0.0f;
@@ -47,10 +47,10 @@ int main(int argc, const char* argv[])
     for (int i = 0; i < numSplines; i++)
     {
         float len = Length(splines[i], 0.01f);
-        Bounds2f bb = ExactBounds(splines[i]);
+        Bounds2 bb = ExactBounds(splines[i]);
 
-        printf("spline %2d: length: %5.1f, bounds: [%6.1f, %6.1f], [%6.1f, %6.1f]\n", i, len, bb.min.x, bb.min.y, bb.min.x, bb.min.y);
-        
+        printf("spline %2d: length: %5.1f, bounds: [%6.1f, %6.1f], [%6.1f, %6.1f]\n", i, len, bb.mMin.x, bb.mMin.y, bb.mMax.x, bb.mMax.y);
+
         sumLen += len;
     }
     printf("\ntotal length: %g\n\n", sumLen);
@@ -61,7 +61,7 @@ int main(int argc, const char* argv[])
     Vec2f vs = Velocity (splines[is], ts);
     float cs = Curvature(splines[is], ts);
 
-    printf("spline %d, t = %g: position [%g, %g], velocity: [%g, %g], curvature %g \n\n", is, ts, ps.x, ps.y, vs.x, vs.y, cs);
+    printf("spline %d, t = %g: position [%g, %g], velocity: [%g, %g], curvature %g\n\n", is, ts, ps.x, ps.y, vs.x, vs.y, cs);
 
     const Vec2f queryPoints[] =
     {
@@ -77,7 +77,7 @@ int main(int argc, const char* argv[])
         float t = FindClosestPoint(qp, numSplines, splines, &index);
 
         Vec2f cp = Position(splines[index], t);
-        
+
         printf("Closest point to [%6.1f, %6.1f]: index = %2d, t = %4.2f, point = [%6.1f, %6.1f]\n", qp.x, qp.y, index, t, cp.x, cp.y);
     }
 

@@ -1,0 +1,36 @@
+spline  0: length: 193.9, bounds: [-175.2, -137.7], [   1.1,  -78.9]
+spline  1: length: 284.7, bounds: [-174.9,  -78.9], [  51.3,   90.6]
+spline  2: length: 269.4, bounds: [-183.8,  -39.0], [  51.3,   90.9]
+spline  3: length: 219.2, bounds: [-183.9,  -41.0], [  22.4,   21.1]
+spline  4: length: 166.1, bounds: [ -63.5,   21.1], [  24.9,  149.5]
+spline  5: length: 294.3, bounds: [ -63.5, -137.1], [  16.1,  145.8]
+spline  6: length: 304.1, bounds: [ -49.4, -137.1], [  16.2,  159.7]
+spline  7: length: 259.2, bounds: [ -49.4,  -90.0], [  10.2,  159.9]
+spline  8: length: 212.1, bounds: [-164.4, -194.5], [   7.2,  -90.0]
+spline  9: length: 245.3, bounds: [-203.0, -190.0], [-164.4,   42.5]
+spline 10: length: 296.6, bounds: [-180.2,   42.5], [ 102.9,  118.4]
+spline 11: length: 148.6, bounds: [   7.6,  118.4], [ 107.6,  199.6]
+spline 12: length: 354.3, bounds: [   8.1, -126.2], [ 162.3,  188.9]
+spline 13: length: 298.0, bounds: [-125.7, -154.8], [ 160.2, -123.8]
+spline 14: length: 154.8, bounds: [-141.2, -123.8], [-103.0,   18.3]
+
+total length: 3700.5
+
+spline 4, t = 0.2: position [21.2403, 48.383], velocity: [-62.287, 171.471], curvature 0.0108137
+
+Closest point to [  83.8, -122.2]: index = 13, t = 0.33, point = [  85.7, -154.1]
+Closest point to [ 126.2,  -40.5]: index = 12, t = 0.68, point = [ 135.5,  -35.8]
+Closest point to [ -36.1,   -9.2]: index =  3, t = 0.68, point = [ -36.1,   -9.1]
+Closest point to [ -61.8, -131.0]: index =  0, t = 0.34, point = [ -61.0, -126.3]
+
+Self-intersections:
+    i0 =  1, t0 = 0.26, i1 =  3, t1 = 0.35
+    i0 =  1, t0 = 0.74, i1 =  4, t1 = 0.29
+    i0 =  1, t0 = 0.57, i1 =  5, t1 = 0.40
+    i0 =  1, t0 = 0.61, i1 =  6, t1 = 0.57
+    i0 =  2, t0 = 0.27, i1 =  4, t1 = 0.33
+    i0 =  2, t0 = 0.43, i1 =  5, t1 = 0.37
+    i0 =  2, t0 = 0.38, i1 =  6, t1 = 0.60
+    i0 =  3, t0 = 0.73, i1 =  5, t1 = 0.50
+    i0 =  3, t0 = 0.78, i1 =  6, t1 = 0.48
+    i0 =  4, t0 = 0.73, i1 =  6, t1 = 0.85
