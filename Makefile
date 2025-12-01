@@ -1,7 +1,7 @@
-CXXFLAGS = --std=c++11
+CXXFLAGS = --std=c++11 -Wall -O2
 
-SPLINE_LIB_INCLUDES=Splines.hpp VLMini.hpp
-SPLINE_LIB_SOURCES=Splines.cpp
+SPLINE_LIB_INCLUDES=Splines.hpp RotSplines.hpp VLMini.hpp Makefile
+SPLINE_LIB_SOURCES=Splines.cpp RotSplines.cpp
 
 splines_test: $(SPLINE_LIB_INCLUDES) $(SPLINE_LIB_SOURCES) SplinesTest.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $(SPLINE_LIB_SOURCES) SplinesTest.cpp

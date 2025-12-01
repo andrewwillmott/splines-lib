@@ -84,6 +84,135 @@ namespace
         return Vec2f(sqr(ty) * d2, sqr(tz) * d2);
     }
 
+    template<class T, class S> inline S SplineFromPointsT(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension)
+    {
+        T p0 = *(T*) (p8 + i0 * stride);
+        T p1 = *(T*) (p8 + i1 * stride);
+        T p2 = *(T*) (p8 + i2 * stride);
+        T p3 = *(T*) (p8 + i3 * stride);
+
+        float s = (1.0f - tension) * (1.0f / 6.0f);
+
+        T pb1 = p1 + s * (p2 - p0);
+        T pb2 = p2 - s * (p3 - p1);
+
+        return BezierSpline(p1, pb1, pb2, p2);
+    }
+
+    template<class T, class S> inline S SplineFromPointsDynamicT(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension, float ratio = 0.666f)
+    {
+        // The standard algorithm above has an issue when a small segment is followed by a very large one.
+        // ||pb1|| can wind up being much larger than ||p0_p1||, which leads to the spline rep looping
+        // back on itself. Basically, the shared tangent's length is much larger than the first segment's size.
+        //
+        // One approach to fixing is to virtually split the spline, which effectively means
+        // using p2' = p1 + t(p2 - p1) with t << 1.
+        // Another approach is to adjust 's' on the fly to ensure p2 - p0 is not >> ||p1 - p0||
+        // We need
+
+        T p0 = *(T*) (p8 + i0 * stride);
+        T p1 = *(T*) (p8 + i1 * stride);
+        T p2 = *(T*) (p8 + i2 * stride);
+        T p3 = *(T*) (p8 + i3 * stride);
+
+        float s = (1.0f - tension) * (1.0f / 6.0f);
+
+        T d1 = s * (p2 - p0);
+        T d2 = s * (p3 - p1);
+
+        float l2d1 = sqrlen(d1);
+        float l2d2 = sqrlen(d2);
+
+        ratio *= ratio;
+
+        float l1 = sqrlen(p1 - p0) * ratio;
+        float l2 = sqrlen(p2 - p1) * ratio;
+        float l3 = sqrlen(p3 - p2) * ratio;
+
+        if (l1 > 0)
+            l1 = vl_min(l1, l2);
+        else
+            l1 = l2;
+
+        if (l3 > 0)
+            l3 = vl_min(l3, l2);
+        else
+            l3 = l2;
+
+        if (l2d1 > l1)
+            d1 *=  sqrtf(l1 / l2d1);
+
+        if (l2d2 > l3)
+            d2 *=  sqrtf(l3 / l2d2);
+
+        T pb1 = p1 + d1;
+        T pb2 = p2 - d2;
+
+        return BezierSpline(p1, pb1, pb2, p2);
+    }
+
+    template<typename T, typename S> int SplinesFromSamples(int numPoints, const T pi[], S splines[], float tension, size_t stride)
+    {
+        SL_ASSERT(numPoints >= 0);
+
+        const char* p8 = (const char*) pi;
+
+        switch (numPoints)
+        {
+        case 0:
+            return 0;
+        case 1:
+            *splines = SplineFromPointsT<T, S>(p8, stride, 0, 0, 0, 0, tension);
+            return 1;
+        case 2:
+            *splines = SplineFromPointsT<T, S>(p8, stride, 0, 0, 1, 1, tension);
+            return 1;
+        }
+
+        *splines++ = SplineFromPointsT<T, S>(p8, stride, 0, 0, 1, 2, tension);
+
+        for (int i = 0; i < numPoints - 3; i++)
+        {
+            *splines++ = SplineFromPointsT<T, S>(p8, stride, 0, 1, 2, 3, tension);
+            p8 += stride;
+        }
+
+        *splines++ = SplineFromPointsT<T, S>(p8, stride, 0, 1, 2, 2, tension);
+
+        return numPoints - 1;
+    }
+
+    template<typename T, typename S> int SplinesFromSamplesDynamic(int numPoints, const T pi[], S splines[], float tension, float ratio, size_t stride)
+    {
+        SL_ASSERT(numPoints >= 0);
+
+        const char* p8 = (const char*) pi;
+
+        switch (numPoints)
+        {
+        case 0:
+            return 0;
+        case 1:
+            *splines = SplineFromPointsT<T, S>(p8, stride, 0, 0, 0, 0, tension);
+            return 1;
+        case 2:
+            *splines = SplineFromPointsT<T, S>(p8, stride, 0, 0, 1, 1, tension);
+            return 1;
+        }
+
+        *splines++ = SplineFromPointsDynamicT<T, S>(p8, stride, 0, 0, 1, 2, tension, ratio);
+
+        for (int i = 0; i < numPoints - 3; i++)
+        {
+            *splines++ = SplineFromPointsDynamicT<T, S>(p8, stride, 0, 1, 2, 3, tension, ratio);
+            p8 += stride;
+        }
+
+        *splines++ = SplineFromPointsDynamicT<T, S>(p8, stride, 0, 1, 2, 2, tension, ratio);
+
+        return numPoints - 1;
+    }
+
     // Monotone Piecewise Cubic Interpolation
     inline int TriSign(float x, float eps = 1e-6f)
     {
@@ -234,6 +363,46 @@ Spline1 SL::CubicSpline(const Vec4f& c)
         c.x + (2.0f / 3.0f) * c.y + (1.0f / 3.0f) * c.z,
         c.x +                 c.y +                 c.z + c.w
     );
+}
+
+int SL::SplinesFromPoints(int numPoints, const float pi[], Spline1 splines[], float tension, size_t stride)
+{
+    return ::SplinesFromSamples(numPoints, pi, splines, tension, stride);
+}
+
+int SL::SplinesFromPointsDynamic(int numPoints, const float pi[], Spline1 splines[], float tension, float ratio, size_t stride)
+{
+    return ::SplinesFromSamplesDynamic(numPoints, pi, splines, tension, ratio, stride);
+}
+
+int SL::SplinesFromBezier(int numPoints, const float points[], const float hullPoints[], Spline1 splines[], bool split)
+{
+    int numSplines = split ? numPoints / 2 : numPoints - 1;
+    int advance    = split ? 2 : 1;
+
+    for (int i = 0; i < numSplines; i++)
+    {
+        splines[i] = BezierSpline(points[0], hullPoints[0], hullPoints[1], points[1]);
+        points     += advance;
+        hullPoints += advance;
+    }
+
+    return numSplines;
+}
+
+int SL::SplinesFromHermite(int numPoints, const float points[], const float tangents  [], Spline1 splines[], bool split)
+{
+    int numSplines = split ? numPoints / 2 : numPoints - 1;
+    int advance    = split ? 2 : 1;
+
+    for (int i = 0; i < numSplines; i++)
+    {
+        splines[i] = HermiteSpline(points[0], points[1], tangents[0], tangents[1]);
+        points   += advance;
+        tangents += advance;
+    }
+
+    return numSplines;
 }
 
 void SL::MakeMonotonic(int n, Spline1 splines[], bool closed)
@@ -542,141 +711,14 @@ void SL::CircleSplines(Vec2f p, float r, Spline2 splines[4])
         splines[i] = QuadrantSpline(p, r, i);
 }
 
-namespace
+int SL::SplinesFromPoints(int numPoints, const Vec2f pi[], Spline2 splines[], float tension, size_t stride)
 {
-    inline Spline2 SplineFromPoints2(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension)
-    {
-        Vec2f p0 = *(Vec2f*) (p8 + i0 * stride);
-        Vec2f p1 = *(Vec2f*) (p8 + i1 * stride);
-        Vec2f p2 = *(Vec2f*) (p8 + i2 * stride);
-        Vec2f p3 = *(Vec2f*) (p8 + i3 * stride);
-
-        float s = (1.0f - tension) * (1.0f / 6.0f);
-
-        Vec2f pb1 = p1 + s * (p2 - p0);
-        Vec2f pb2 = p2 - s * (p3 - p1);
-
-        return BezierSpline(p1, pb1, pb2, p2);
-    }
+    return ::SplinesFromSamples(numPoints, pi, splines, tension, stride);
 }
 
-int SL::SplinesFromPoints(int numPoints, const Vec2f pi[], int maxSplines, Spline2 splines[], float tension, size_t stride)
+int SL::SplinesFromPointsDynamic(int numPoints, const Vec2f pi[], Spline2 splines[], float tension, float ratio, size_t stride)
 {
-    SL_ASSERT(numPoints >= 0);
-    SL_ASSERT(maxSplines >= 0 && maxSplines >= NumSplinesForPoints(numPoints));
-
-    const char* p8 = (const char*) pi;
-
-    switch (numPoints)
-    {
-    case 0:
-        return 0;
-    case 1:
-        *splines = SplineFromPoints2(p8, stride, 0, 0, 0, 0, tension);
-        return 1;
-    case 2:
-        *splines = SplineFromPoints2(p8, stride, 0, 0, 1, 1, tension);
-        return 1;
-    }
-
-    *splines++ = SplineFromPoints2(p8, stride, 0, 0, 1, 2, tension);
-
-    for (int i = 0; i < numPoints - 3; i++)
-    {
-        *splines++ = SplineFromPoints2(p8, stride, 0, 1, 2, 3, tension);
-        p8 += stride;
-    }
-
-    *splines++ = SplineFromPoints2(p8, stride, 0, 1, 2, 2, tension);
-
-    return numPoints - 1;
-}
-
-namespace
-{
-    Spline2 SplineFromPointsDynamic2(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension, float ratio = 0.666f)
-    {
-        // The standard algorithm above has an issue when a small segment is followed by a very large one.
-        // ||pb1|| can wind up being much larger than ||p0_p1||, which leads to the spline rep looping
-        // back on itself. Basically, the shared tangent's length is much larger than the first segment's size.
-        //
-        // One approach to fixing is to virtually split the spline, which effectively means
-        // using p2' = p1 + t(p2 - p1) with t << 1.
-        // Another approach is to adjust 's' on the fly to ensure p2 - p0 is not >> ||p1 - p0||
-        // We need
-
-        Vec2f p0 = *(Vec2f*) (p8 + i0 * stride);
-        Vec2f p1 = *(Vec2f*) (p8 + i1 * stride);
-        Vec2f p2 = *(Vec2f*) (p8 + i2 * stride);
-        Vec2f p3 = *(Vec2f*) (p8 + i3 * stride);
-
-        float s = (1.0f - tension) * (1.0f / 6.0f);
-
-        Vec2f d1 = s * (p2 - p0);
-        Vec2f d2 = s * (p3 - p1);
-
-        float l2d1 = sqrlen(d1);
-        float l2d2 = sqrlen(d2);
-
-        ratio *= ratio;
-
-        float l1 = sqrlen(p1 - p0) * ratio;
-        float l2 = sqrlen(p2 - p1) * ratio;
-        float l3 = sqrlen(p3 - p2) * ratio;
-
-        if (l1 > 0)
-            l1 = vl_min(l1, l2);
-        else
-            l1 = l2;
-
-        if (l3 > 0)
-            l3 = vl_min(l3, l2);
-        else
-            l3 = l2;
-
-        if (l2d1 > l1)
-            d1 *=  sqrtf(l1 / l2d1);
-
-        if (l2d2 > l3)
-            d2 *=  sqrtf(l3 / l2d2);
-
-        Vec2f pb1 = p1 + d1;
-        Vec2f pb2 = p2 - d2;
-
-        return BezierSpline(p1, pb1, pb2, p2);
-    }
-}
-
-int SL::SplinesFromPointsDynamic(int numPoints, const Vec2f pi[], int maxSplines, Spline2 splines[], float tension, float ratio, size_t stride)
-{
-    SL_ASSERT(numPoints >= 0);
-    SL_ASSERT(maxSplines >= 0 && maxSplines >= NumSplinesForPoints(numPoints));
-
-    const char* p8 = (const char*) pi;
-
-    switch (numPoints)
-    {
-    case 0:
-        return 0;
-    case 1:
-        *splines = SplineFromPoints2(p8, stride, 0, 0, 0, 0, tension);
-        return 1;
-    case 2:
-        *splines = SplineFromPoints2(p8, stride, 0, 0, 1, 1, tension);
-        return 1;
-    }
-
-    *splines++ = SplineFromPointsDynamic2(p8, stride, 0, 0, 1, 2, tension, ratio);
-
-    for (int i = 0; i < numPoints - 3; i++)
-    {
-        *splines++ = SplineFromPointsDynamic2(p8, stride, 0, 1, 2, 3, tension, ratio);
-        p8 += stride;
-    }
-
-    *splines++ = SplineFromPointsDynamic2(p8, stride, 0, 1, 2, 2, tension, ratio);
-
-    return numPoints - 1;
+    return ::SplinesFromSamplesDynamic(numPoints, pi, splines, tension, ratio, stride);
 }
 
 int SL::SplinesFromBezier(int numPoints, const Vec2f points[], const Vec2f hullPoints[], Spline2 splines[], bool split)
@@ -840,7 +882,7 @@ Mat2f SL::FrameX(const Spline2& spline, float t)
 
     Mat2f frame;
     frame.x = norm_safe(v);    // x = forward
-    frame.y = cross(frame.y);  // y = left always
+    frame.y = cross(frame.x);  // y = left always
 
     return frame;
 }
@@ -1613,7 +1655,7 @@ int SL::FindNearbySplines(Vec2f p, int numSplines, const Spline2 splines[], vect
             if (nearSplines[i].mD2 < smallestFar)
             {
                 if (di < i)
-                    nearSplines  [di] = nearSplines  [i];
+                    nearSplines[di] = nearSplines[i];
 
                 di++;
             }
@@ -1643,6 +1685,7 @@ float SL::FindClosestPoint(Vec2f p, int numSplines, const Spline2 splines[], con
         if (subSpline.mParent != prevParent)
         {
             SL_ASSERT(subSpline.mParent >= 0 && subSpline.mParent < numSplines);
+            (void) numSplines;
 
             const Spline2& spline = splines[subSpline.mParent];
 
@@ -2116,141 +2159,14 @@ void SL::CircleSplines(Vec3f p, float r, Spline3 splines[4])
         splines[i] = QuadrantSpline(p, r, i);
 }
 
-namespace
+int SL::SplinesFromPoints(int numPoints, const Vec3f pi[], Spline3 splines[], float tension, size_t stride)
 {
-    inline Spline3 SplineFromPoints3(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension)
-    {
-        Vec3f p0 = *(Vec3f*) (p8 + i0 * stride);
-        Vec3f p1 = *(Vec3f*) (p8 + i1 * stride);
-        Vec3f p2 = *(Vec3f*) (p8 + i2 * stride);
-        Vec3f p3 = *(Vec3f*) (p8 + i3 * stride);
-
-        float s = (1.0f - tension) * (1.0f / 6.0f);
-
-        Vec3f pb1 = p1 + s * (p2 - p0);
-        Vec3f pb2 = p2 - s * (p3 - p1);
-
-        return BezierSpline(p1, pb1, pb2, p2);
-    }
+    return ::SplinesFromSamples(numPoints, pi, splines, tension, stride);
 }
 
-int SL::SplinesFromPoints(int numPoints, const Vec3f pi[], int maxSplines, Spline3 splines[], float tension, size_t stride)
+int SL::SplinesFromPointsDynamic(int numPoints, const Vec3f pi[], Spline3 splines[], float tension, float ratio, size_t stride)
 {
-    SL_ASSERT(numPoints >= 0);
-    SL_ASSERT(maxSplines >= 0 && maxSplines >= NumSplinesForPoints(numPoints));
-
-    const char* p8 = (const char*) pi;
-
-    switch (numPoints)
-    {
-    case 0:
-        return 0;
-    case 1:
-        *splines = SplineFromPoints3(p8, stride, 0, 0, 0, 0, tension);
-        return 1;
-    case 2:
-        *splines = SplineFromPoints3(p8, stride, 0, 0, 1, 1, tension);
-        return 1;
-    }
-
-    *splines++ = SplineFromPoints3(p8, stride, 0, 0, 1, 2, tension);
-
-    for (int i = 0; i < numPoints - 3; i++)
-    {
-        *splines++ = SplineFromPoints3(p8, stride, 0, 1, 2, 3, tension);
-        p8 += stride;
-    }
-
-    *splines++ = SplineFromPoints3(p8, stride, 0, 1, 2, 2, tension);
-
-    return numPoints - 1;
-}
-
-namespace
-{
-    Spline3 SplineFromPointsDynamic3(const char* p8, size_t stride, int i0, int i1, int i2, int i3, float tension, float ratio = 0.666f)
-    {
-        // The standard algorithm above has an issue when a small segment is followed by a very large one.
-        // ||pb1|| can wind up being much larger than ||p0_p1||, which leads to the spline rep looping
-        // back on itself. Basically, the shared tangent's length is much larger than the first segment's size.
-        //
-        // One approach to fixing is to virtually split the spline, which effectively means
-        // using p2' = p1 + t(p2 - p1) with t << 1.
-        // Another approach is to adjust 's' on the fly to ensure p2 - p0 is not >> ||p1 - p0||
-        // We need
-
-        Vec3f p0 = *(Vec3f*) (p8 + i0 * stride);
-        Vec3f p1 = *(Vec3f*) (p8 + i1 * stride);
-        Vec3f p2 = *(Vec3f*) (p8 + i2 * stride);
-        Vec3f p3 = *(Vec3f*) (p8 + i3 * stride);
-
-        float s = (1.0f - tension) * (1.0f / 6.0f);
-
-        Vec3f d1 = s * (p2 - p0);
-        Vec3f d2 = s * (p3 - p1);
-
-        float l2d1 = sqrlen(d1);
-        float l2d2 = sqrlen(d2);
-
-        ratio *= ratio;
-
-        float l1 = sqrlen(p1 - p0) * ratio;
-        float l2 = sqrlen(p2 - p1) * ratio;
-        float l3 = sqrlen(p3 - p2) * ratio;
-
-        if (l1 > 0)
-            l1 = vl_min(l1, l2);
-        else
-            l1 = l2;
-
-        if (l3 > 0)
-            l3 = vl_min(l3, l2);
-        else
-            l3 = l2;
-
-        if (l2d1 > l1)
-            d1 *=  sqrtf(l1 / l2d1);
-
-        if (l2d2 > l3)
-            d2 *=  sqrtf(l3 / l2d2);
-
-        Vec3f pb1 = p1 + d1;
-        Vec3f pb2 = p2 - d2;
-
-        return BezierSpline(p1, pb1, pb2, p2);
-    }
-}
-
-int SL::SplinesFromPointsDynamic(int numPoints, const Vec3f pi[], int maxSplines, Spline3 splines[], float tension, float ratio, size_t stride)
-{
-    SL_ASSERT(numPoints >= 0);
-    SL_ASSERT(maxSplines >= 0 && maxSplines >= NumSplinesForPoints(numPoints));
-
-    const char* p8 = (const char*) pi;
-
-    switch (numPoints)
-    {
-    case 0:
-        return 0;
-    case 1:
-        *splines = SplineFromPoints3(p8, stride, 0, 0, 0, 0, tension);
-        return 1;
-    case 2:
-        *splines = SplineFromPoints3(p8, stride, 0, 0, 1, 1, tension);
-        return 1;
-    }
-
-    *splines++ = SplineFromPointsDynamic3(p8, stride, 0, 0, 1, 2, tension, ratio);
-
-    for (int i = 0; i < numPoints - 3; i++)
-    {
-        *splines++ = SplineFromPointsDynamic3(p8, stride, 0, 1, 2, 3, tension, ratio);
-        p8 += stride;
-    }
-
-    *splines++ = SplineFromPointsDynamic3(p8, stride, 0, 1, 2, 2, tension, ratio);
-
-    return numPoints - 1;
+    return ::SplinesFromSamplesDynamic(numPoints, pi, splines, tension, ratio, stride);
 }
 
 int SL::SplinesFromBezier(int numPoints, const Vec3f points[], const Vec3f hullPoints[], Spline3 splines[], bool split)
@@ -3280,7 +3196,7 @@ int SL::FindNearbySplines(Vec3f p, int numSplines, const Spline3 splines[], vect
             if (nearSplines[i].mD2 <= smallestFar)
             {
                 if (di < i)
-                    nearSplines  [di] = nearSplines  [i];
+                    nearSplines[di] = nearSplines[i];
 
                 di++;
             }
@@ -3310,6 +3226,7 @@ float SL::FindClosestPoint(Vec3f p, int numSplines, const Spline3 splines[], con
         if (subSpline.mParent != prevParent)
         {
             SL_ASSERT(subSpline.mParent >= 0 && subSpline.mParent < numSplines);
+            (void) numSplines;
 
             const Spline3& spline = splines[subSpline.mParent];
 

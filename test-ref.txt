@@ -1,36 +1,165 @@
-spline  0: length: 193.9, bounds: [-175.2, -137.7], [   1.1,  -78.9]
-spline  1: length: 284.7, bounds: [-174.9,  -78.9], [  51.3,   90.6]
-spline  2: length: 269.4, bounds: [-183.8,  -39.0], [  51.3,   90.9]
-spline  3: length: 219.2, bounds: [-183.9,  -41.0], [  22.4,   21.1]
-spline  4: length: 166.1, bounds: [ -63.5,   21.1], [  24.9,  149.5]
-spline  5: length: 294.3, bounds: [ -63.5, -137.1], [  16.1,  145.8]
-spline  6: length: 304.1, bounds: [ -49.4, -137.1], [  16.2,  159.7]
-spline  7: length: 259.2, bounds: [ -49.4,  -90.0], [  10.2,  159.9]
-spline  8: length: 212.1, bounds: [-164.4, -194.5], [   7.2,  -90.0]
-spline  9: length: 245.3, bounds: [-203.0, -190.0], [-164.4,   42.5]
-spline 10: length: 296.6, bounds: [-180.2,   42.5], [ 102.9,  118.4]
-spline 11: length: 148.6, bounds: [   7.6,  118.4], [ 107.6,  199.6]
-spline 12: length: 354.3, bounds: [   8.1, -126.2], [ 162.3,  188.9]
-spline 13: length: 298.0, bounds: [-125.7, -154.8], [ 160.2, -123.8]
-spline 14: length: 154.8, bounds: [-141.2, -123.8], [-103.0,   18.3]
++ Spline2
+
+info:
+   0: length: 193.9, bounds [-175.2, -137.7], [   1.1,  -78.9]
+   1: length: 284.7, bounds [-174.9,  -78.9], [  51.3,   90.6]
+   2: length: 269.4, bounds [-183.8,  -39.0], [  51.3,   90.9]
+   3: length: 219.2, bounds [-183.9,  -41.0], [  22.4,   21.1]
+   4: length: 166.1, bounds [ -63.5,   21.1], [  24.9,  149.5]
+   5: length: 294.3, bounds [ -63.5, -137.1], [  16.1,  145.8]
+   6: length: 304.1, bounds [ -49.4, -137.1], [  16.2,  159.7]
+   7: length: 259.2, bounds [ -49.4,  -90.0], [  10.2,  159.9]
+   8: length: 212.1, bounds [-164.4, -194.5], [   7.2,  -90.0]
+   9: length: 245.3, bounds [-203.0, -190.0], [-164.4,   42.5]
+  10: length: 296.6, bounds [-180.2,   42.5], [ 102.9,  118.4]
+  11: length: 148.6, bounds [   7.6,  118.4], [ 107.6,  199.6]
+  12: length: 354.3, bounds [   8.1, -126.2], [ 162.3,  188.9]
+  13: length: 298.0, bounds [-125.7, -154.8], [ 160.2, -123.8]
+  14: length: 154.8, bounds [-141.2, -123.8], [-103.0,   18.3]
 
 total length: 3700.5
 
-spline 4, t = 0.2: position [21.2403, 48.383], velocity: [-62.287, 171.471], curvature 0.0108137
+interpolation:
+  i 4, t 0.1: position [  24.9,   32.7], velocity [  -7.9,  139.0], curvature  0.030
+  i 4, t 0.3: position [  12.9,   66.6], velocity [-102.9,  189.7], curvature  0.005
+  i 4, t 0.5: position [ -12.6,  104.9], velocity [-143.0,  183.8], curvature  0.003
+  i 4, t 0.7: position [ -40.7,  136.3], velocity [-128.2,  121.2], curvature  0.006
+  i 4, t 0.9: position [ -60.3,  149.5], velocity [ -58.5,    1.8], curvature  0.211
+  i 5, t 0.1: position [ -61.6,  131.4], velocity [  39.8, -203.8], curvature  0.004
+  i 5, t 0.3: position [ -47.2,   72.6], velocity [  97.8, -364.3], curvature  0.000
+  i 5, t 0.5: position [ -24.9,   -6.4], velocity [ 118.4, -406.4], curvature  0.000
+  i 5, t 0.7: position [  -2.3,  -82.0], velocity [ 101.8, -329.9], curvature  0.000
+  i 5, t 0.9: position [  13.3, -130.5], velocity [  48.0, -135.0], curvature  0.004
 
-Closest point to [  83.8, -122.2]: index = 13, t = 0.33, point = [  85.7, -154.1]
-Closest point to [ 126.2,  -40.5]: index = 12, t = 0.68, point = [ 135.5,  -35.8]
-Closest point to [ -36.1,   -9.2]: index =  3, t = 0.68, point = [ -36.1,   -9.1]
-Closest point to [ -61.8, -131.0]: index =  0, t = 0.34, point = [ -61.0, -126.3]
+closest points:
+  to [  83.8, -122.2]: i 13, t 0.33, point [  85.7, -154.1]
+  to [ 126.2,  -40.5]: i 12, t 0.68, point [ 135.5,  -35.8]
+  to [ -36.1,   -9.2]: i  3, t 0.68, point [ -36.1,   -9.1]
+  to [ -61.8, -131.0]: i  0, t 0.34, point [ -61.0, -126.3]
 
-Self-intersections:
-    i0 =  1, t0 = 0.26, i1 =  3, t1 = 0.35
-    i0 =  1, t0 = 0.74, i1 =  4, t1 = 0.29
-    i0 =  1, t0 = 0.57, i1 =  5, t1 = 0.40
-    i0 =  1, t0 = 0.61, i1 =  6, t1 = 0.57
-    i0 =  2, t0 = 0.27, i1 =  4, t1 = 0.33
-    i0 =  2, t0 = 0.43, i1 =  5, t1 = 0.37
-    i0 =  2, t0 = 0.38, i1 =  6, t1 = 0.60
-    i0 =  3, t0 = 0.73, i1 =  5, t1 = 0.50
-    i0 =  3, t0 = 0.78, i1 =  6, t1 = 0.48
-    i0 =  4, t0 = 0.73, i1 =  6, t1 = 0.85
+self-intersections:
+  i0 1, t0 0.26, i1 3, t1 0.35
+  i0 1, t0 0.74, i1 4, t1 0.29
+  i0 1, t0 0.57, i1 5, t1 0.40
+  i0 1, t0 0.61, i1 6, t1 0.57
+  i0 2, t0 0.27, i1 4, t1 0.33
+  i0 2, t0 0.43, i1 5, t1 0.37
+  i0 2, t0 0.38, i1 6, t1 0.60
+  i0 3, t0 0.73, i1 5, t1 0.50
+  i0 3, t0 0.78, i1 6, t1 0.48
+  i0 4, t0 0.73, i1 6, t1 0.85
+
++ Spline3
+
+info:
+   0: length 194.5, bounds [-175.2, -137.7,   11.1], [   1.1,  -78.9,   22.2]
+   1: length 288.7, bounds [-174.9,  -78.9,   22.2], [  51.3,   90.6,   66.6]
+   2: length 271.1, bounds [-183.8,  -39.0,   66.6], [  51.3,   90.9,   88.8]
+   3: length 220.4, bounds [-183.9,  -41.0,   66.6], [  22.4,   21.1,   88.8]
+   4: length 168.9, bounds [ -63.5,   21.1,   44.4], [  24.9,  149.5,   66.6]
+   5: length 302.2, bounds [ -63.5, -137.1,  -22.2], [  16.1,  145.8,   44.4]
+   6: length 306.3, bounds [ -49.4, -137.1,  -22.8], [  16.2,  159.7,   11.1]
+   7: length 259.6, bounds [ -49.4,  -90.0,   10.2], [  10.2,  159.9,   12.9]
+   8: length 213.4, bounds [-164.4, -194.5,   11.1], [   7.2,  -90.0,   33.3]
+   9: length 246.4, bounds [-203.0, -190.0,   11.0], [-164.4,   42.5,   33.3]
+  10: length 298.6, bounds [-180.2,   42.5,   11.1], [ 102.9,  118.4,   44.4]
+  11: length 150.5, bounds [   7.6,  118.4,   44.4], [ 107.6,  199.6,   66.6]
+  12: length 355.1, bounds [   8.1, -126.2,   66.6], [ 162.3,  188.9,   88.9]
+  13: length 300.0, bounds [-125.7, -154.8,   55.5], [ 160.2, -123.8,   88.8]
+  14: length 161.1, bounds [-141.2, -123.8,   11.1], [-103.0,   18.3,   55.5]
+
+total length: 3736.7
+
+interpolation:
+  i 4, t 0.1: position [  24.9,   32.7,   64.6], velocity [  -7.9,  139.0,  -18.4], curvature  0.030, torsion -0.002
+  i 4, t 0.3: position [  12.9,   66.6,   61.3], velocity [-102.9,  189.7,  -14.9], curvature  0.005, torsion -0.004
+  i 4, t 0.5: position [ -12.6,  104.9,   58.3], velocity [-143.0,  183.8,  -16.6], curvature  0.003, torsion -0.008
+  i 4, t 0.7: position [ -40.7,  136.3,   54.3], velocity [-128.2,  121.2,  -23.8], curvature  0.007, torsion -0.008
+  i 4, t 0.9: position [ -60.3,  149.5,   48.4], velocity [ -58.5,    1.8,  -36.2], curvature  0.168, torsion -0.004
+  i 5, t 0.1: position [ -61.6,  131.4,   39.1], velocity [  39.8, -203.8,  -61.1], curvature  0.005, torsion -0.001
+  i 5, t 0.3: position [ -47.2,   72.6,   24.5], velocity [  97.8, -364.3,  -81.5], curvature  0.001, torsion -0.002
+  i 5, t 0.5: position [ -24.9,   -6.4,    7.6], velocity [ 118.4, -406.4,  -84.6], curvature  0.000, torsion -0.010
+  i 5, t 0.7: position [  -2.3,  -82.0,   -8.2], velocity [ 101.8, -329.9,  -70.4], curvature  0.000, torsion -0.011
+  i 5, t 0.9: position [  13.3, -130.5,  -19.4], velocity [  48.0, -135.0,  -38.9], curvature  0.008, torsion -0.004
+
+closest points:
+  to [  83.8, -122.2,   22.2]: i 13, t 0.35, point [  79.6, -154.4,   81.6]
+  to [ 126.2,  -40.5,   11.1]: i 12, t 0.67, point [ 133.8,  -32.3,   85.6]
+  to [ -36.1,   -9.2,   88.8]: i  3, t 0.68, point [ -37.5,   -9.6,   75.3]
+  to [ -61.8, -131.0,   66.6]: i 13, t 0.74, point [ -63.9, -142.0,   66.1]
+
+self-intersections:
+  i0 1, t0 0.59, i1 5, t1 0.44
+  i0 1, t0 0.62, i1 6, t1 0.56
+  i0 2, t0 0.96, i1 3, t1 0.05
+  i0 5, t0 0.93, i1 6, t1 0.07
+  i0 5, t0 0.95, i1 6, t1 0.05
+
++ RotSpline2
+
+interpolation:
+  i 0, t 0.10: direction [ 0.093,  0.996], rot speed 2.15 rad/s
+  i 0, t 0.30: direction [ 0.348,  0.937], rot speed 3.03 rad/s
+  i 0, t 0.50: direction [ 0.634,  0.773], rot speed 3.53 rad/s
+  i 0, t 0.70: direction [ 0.867,  0.498], rot speed 3.66 rad/s
+  i 0, t 0.90: direction [ 0.987,  0.163], rot speed 3.41 rad/s
+  i 1, t 0.10: direction [ 0.988, -0.156], rot speed 3.14 rad/s
+  i 1, t 0.30: direction [ 0.891, -0.454], rot speed 3.14 rad/s
+  i 1, t 0.50: direction [ 0.707, -0.707], rot speed 3.14 rad/s
+  i 1, t 0.70: direction [ 0.454, -0.891], rot speed 3.14 rad/s
+  i 1, t 0.90: direction [ 0.156, -0.988], rot speed 3.14 rad/s
+  i 2, t 0.10: direction [-0.156, -0.988], rot speed 3.14 rad/s
+  i 2, t 0.30: direction [-0.454, -0.891], rot speed 3.14 rad/s
+  i 2, t 0.50: direction [-0.707, -0.707], rot speed 3.14 rad/s
+  i 2, t 0.70: direction [-0.891, -0.454], rot speed 3.14 rad/s
+  i 2, t 0.90: direction [-0.988, -0.156], rot speed 3.14 rad/s
+  i 3, t 0.10: direction [-0.985,  0.170], rot speed 3.68 rad/s
+  i 3, t 0.30: direction [-0.842,  0.540], rot speed 4.18 rad/s
+  i 3, t 0.50: direction [-0.556,  0.831], rot speed 3.93 rad/s
+  i 3, t 0.70: direction [-0.238,  0.971], rot speed 2.92 rad/s
+  i 3, t 0.90: direction [-0.030,  1.000], rot speed 1.16 rad/s
+  i 4, t 0.10: direction [-0.037,  0.999], rot speed -1.43 rad/s
+  i 4, t 0.30: direction [-0.286,  0.958], rot speed -3.44 rad/s
+  i 4, t 0.50: direction [-0.634,  0.773], rot speed -4.32 rad/s
+  i 4, t 0.70: direction [-0.898,  0.439], rot speed -4.07 rad/s
+  i 4, t 0.90: direction [-0.994,  0.107], rot speed -2.69 rad/s
+
++ RotSpline3
+
+interpolation:
+  i 0, t 0.10: quat [ 0.998,  0.065, -0.000, -0.004], rot speed 2.03 rad/s
+  i 0, t 0.30: quat [ 0.930,  0.368,  0.001, -0.027], rot speed 4.00 rad/s
+  i 0, t 0.50: quat [ 0.684,  0.728,  0.007, -0.051], rot speed 4.58 rad/s
+  i 0, t 0.70: quat [ 0.317,  0.947,  0.009, -0.052], rot speed 3.79 rad/s
+  i 0, t 0.90: quat [ 0.042,  0.999,  0.003, -0.023], rot speed 1.66 rad/s
+  i 1, t 0.10: quat [ 0.001,  0.999,  0.044,  0.024], rot speed 1.75 rad/s
+  i 1, t 0.30: quat [ 0.018,  0.941,  0.332,  0.056], rot speed 3.97 rad/s
+  i 1, t 0.50: quat [ 0.046,  0.704,  0.706,  0.062], rot speed 4.72 rad/s
+  i 1, t 0.70: quat [ 0.052,  0.331,  0.942,  0.038], rot speed 3.96 rad/s
+  i 1, t 0.90: quat [ 0.024,  0.043,  0.999,  0.007], rot speed 1.75 rad/s
+  i 2, t 0.10: quat [-0.021, -0.005,  0.999,  0.044], rot speed 1.73 rad/s
+  i 2, t 0.30: quat [-0.033, -0.028,  0.942,  0.332], rot speed 3.96 rad/s
+  i 2, t 0.50: quat [-0.010, -0.041,  0.707,  0.706], rot speed 4.72 rad/s
+  i 2, t 0.70: quat [ 0.017, -0.033,  0.333,  0.942], rot speed 3.96 rad/s
+  i 2, t 0.90: quat [ 0.015, -0.015,  0.044,  0.999], rot speed 1.73 rad/s
+  i 3, t 0.10: quat [ 0.016,  0.045, -0.001,  0.999], rot speed 1.68 rad/s
+  i 3, t 0.30: quat [ 0.206,  0.255,  0.006,  0.945], rot speed 3.88 rad/s
+  i 3, t 0.50: quat [ 0.478,  0.505,  0.025,  0.718], rot speed 4.65 rad/s
+  i 3, t 0.70: quat [ 0.666,  0.658,  0.032,  0.350], rot speed 3.98 rad/s
+  i 3, t 0.90: quat [ 0.714,  0.698,  0.014,  0.054], rot speed 1.88 rad/s
+  i 4, t 0.10: quat [ 0.686,  0.728,  0.013, -0.015], rot speed 1.14 rad/s
+  i 4, t 0.30: quat [ 0.588,  0.792,  0.160, -0.041], rot speed 2.54 rad/s
+  i 4, t 0.50: quat [ 0.414,  0.822,  0.387, -0.051], rot speed 3.07 rad/s
+  i 4, t 0.70: quat [ 0.204,  0.782,  0.588, -0.040], rot speed 2.67 rad/s
+  i 4, t 0.90: quat [ 0.038,  0.719,  0.694, -0.016], rot speed 1.36 rad/s
+  i 5, t 0.10: quat [-0.016,  0.693,  0.720,  0.036], rot speed 1.30 rad/s
+  i 5, t 0.30: quat [-0.032,  0.589,  0.785,  0.191], rot speed 2.56 rad/s
+  i 5, t 0.50: quat [-0.026,  0.397,  0.827,  0.396], rot speed 3.00 rad/s
+  i 5, t 0.70: quat [-0.010,  0.177,  0.800,  0.574], rot speed 2.57 rad/s
+  i 5, t 0.90: quat [-0.001,  0.023,  0.733,  0.680], rot speed 1.30 rad/s
+  i 6, t 0.10: quat [ 0.022, -0.001,  0.680,  0.733], rot speed 1.30 rad/s
+  i 6, t 0.30: quat [ 0.172, -0.005,  0.570,  0.803], rot speed 2.55 rad/s
+  i 6, t 0.50: quat [ 0.388, -0.004,  0.391,  0.835], rot speed 2.98 rad/s
+  i 6, t 0.70: quat [ 0.579, -0.001,  0.186,  0.794], rot speed 2.57 rad/s
+  i 6, t 0.90: quat [ 0.688,  0.000,  0.033,  0.725], rot speed 1.30 rad/s
+
