@@ -155,10 +155,10 @@ inline Quatf SLerp(const Quatf& q1, const Quatf& q2, float s)
 {
     float cosHalfTheta = dot(q1, q2);
 
-    if (abs(cosHalfTheta) >= float(0.99999))
+    if (fabsf(cosHalfTheta) >= float(0.99999))
         return q1;
 
-    float sinHalfTheta = sqrt(float(1) - cosHalfTheta * cosHalfTheta);
+    float sinHalfTheta = sqrtf(float(1) - cosHalfTheta * cosHalfTheta);
 
     if (sinHalfTheta < float(1e-5))
         return float(0.5) * (q1 + q2);
