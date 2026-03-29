@@ -1700,6 +1700,8 @@ float SL::FindClosestPoint(Vec2f p, int numSplines, const Spline2 splines[], con
                 *index = subSpline.mParent;
                 minT = t;
             }
+
+            prevParent = subSpline.mParent;
         }
     }
 
@@ -2207,7 +2209,7 @@ void SL::MakeMonotonic(int n, Spline3 splines[], bool closed)
         {
             splines[0].xb = Monotonic(splines[n - 1].xb.x, splines[0].xb, splines[1].xb.w);
             splines[0].yb = Monotonic(splines[n - 1].yb.x, splines[0].yb, splines[1].yb.w);
-            splines[0].zb = Monotonic(splines[n - 1].zb.x, splines[0].yb, splines[1].zb.w);
+            splines[0].zb = Monotonic(splines[n - 1].zb.x, splines[0].zb, splines[1].zb.w);
         }
         else
         {
@@ -2232,7 +2234,7 @@ void SL::MakeMonotonic(int n, Spline3 splines[], bool closed)
         {
             splines[n - 1].xb = Monotonic(splines[n - 2].xb.x, splines[n - 1].xb, splines[0].xb.w);
             splines[n - 1].yb = Monotonic(splines[n - 2].yb.x, splines[n - 1].yb, splines[0].yb.w);
-            splines[n - 1].zb = Monotonic(splines[n - 2].zb.x, splines[n - 1].yb, splines[0].zb.w);
+            splines[n - 1].zb = Monotonic(splines[n - 2].zb.x, splines[n - 1].zb, splines[0].zb.w);
         }
         else
         {
@@ -2466,7 +2468,7 @@ float SL::Length(const Spline3& s, float t0, float t1, float maxError)
 
     Spline3 s0, s1;
 
-    if (t0 == 0.0f)
+    if (t0 <= 0.0f)
     {
         if (t1 == 1.0f)
             return Length(s, maxError);
@@ -3241,6 +3243,8 @@ float SL::FindClosestPoint(Vec3f p, int numSplines, const Spline3 splines[], con
                 *index = subSpline.mParent;
                 minT = t;
             }
+
+            prevParent = subSpline.mParent;
         }
     }
 
