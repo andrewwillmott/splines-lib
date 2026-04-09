@@ -510,10 +510,27 @@ Bounds1 SL::ExactBounds(const Spline1& spline)
     return bounds;
 }
 
-// This is based on one step of De Casteljau's algorithm
+void SL::Split(const Spline1& spline, Spline1* spline0, Spline1* spline1)
+{
+    float q0 = (spline.x + spline.y) * 0.5f;
+    float q1 = (spline.y + spline.z) * 0.5f;
+    float q2 = (spline.z + spline.w) * 0.5f;
+
+    float r0 = (q0 + q1) * 0.5f;
+    float r1 = (q1 + q2) * 0.5f;
+
+    float s0 = (r0 + r1) * 0.5f;
+
+    float sx = spline.x;
+    float sw = spline.w;
+
+    *spline0 = Spline1(sx, q0, r0, s0);
+    *spline1 = Spline1(s0, r1, q2, sw);
+}
+
 void SL::Split(const Spline1& spline, float t, Spline1* spline0, Spline1* spline1)
 {
-    // assumption: seg = (P0, P1, P2, P3)
+    // This is based on one step of De Casteljau's algorithm
     float q0 = lerp(spline.x, spline.y, t);
     float q1 = lerp(spline.y, spline.z, t);
     float q2 = lerp(spline.z, spline.w, t);
@@ -523,36 +540,89 @@ void SL::Split(const Spline1& spline, float t, Spline1* spline0, Spline1* spline
 
     float s0 = lerp(r0, r1, t);
 
-    float sx = spline.x;    // support aliasing
+    float sx = spline.x;
     float sw = spline.w;
 
     *spline0 = Spline1(sx, q0, r0, s0);
     *spline1 = Spline1(s0, r1, q2, sw);
 }
 
-// Optimised for t=0.5
-void SL::Split(const Spline1& spline, Spline1* spline0, Spline1* spline1)
+bool SL::Join(const Spline1& s0, const Spline1& s1, Spline1* sOut)
 {
-    float q0 = (spline.x + spline.y) * 0.5f;    // x + y / 2
-    float q1 = (spline.y + spline.z) * 0.5f;    // y + z / 2
-    float q2 = (spline.z + spline.w) * 0.5f;    // z + w / 2
+    if (s0.w != s1.x) // early out
+        return false;
 
-    float r0 = (q0 + q1) * 0.5f;    // x + 2y + z / 4
-    float r1 = (q1 + q2) * 0.5f;    // y + 2z + w / 4
+    // backwards solve from left
+    float x0 =     s0.x;
+    float y0 = 2 * s0.y - x0;
+    float z0 = 4 * s0.z - x0 - 2 * y0;
+    float w0 = 8 * s0.w - x0 - 3 * (y0 + z0);
 
-    float s0 = (r0 + r1) * 0.5f;    // q0 + 2q1 + q2 / 4 = x+y + 2(y+z) + z+w / 8 = x + 3y + 3z + w
+    // backwards solve from right
+    float w1 =     s1.w;
+    float z1 = 2 * s1.z - w1;
+    float y1 = 4 * s1.y - w1 - 2 * z1;
+    float x1 = 8 * s1.x - w1 - 3 * (y1 + z1);
 
-    float sx = spline.x;    // support aliasing
-    float sw = spline.w;
+    *sOut = Spline1(x0, y0, z1, w1);   // use most stable terms
 
-    *spline0 = Spline1(sx, q0, r0, s0);
-    *spline1 = Spline1(s0, r1, q2, sw);
+    float e2 = sqr(x0 - x1) + sqr(y0 - y1) + sqr(z0 - z1) + sqr(w0 - w1);
+
+    return e2 <= 1e-4f * sqr(s0.x - s1.w);  // sq error relative to overall size
 }
 
-Spline1 SL::Trim(const Spline1& spline_in, float t0, float t1)
+bool SL::Join(const Spline1& s0, const Spline1& s1, float t, Spline1* s)
+{
+    if (t <= 0.0f)
+    {
+        *s = s1;
+        return true;
+    }
+
+    if (t >= 1.0f)
+    {
+        *s = s0;
+        return true;
+    }
+
+    float u  = 1 - t;
+    float it = 1.0f / t;
+    float iu = 1.0f / u;
+
+    float q0 = s0.y;
+    float q2 = s1.z;
+
+    float x0 = s0.x;
+    float y0 = (q0 - u * x0) * it;  // backsolve
+
+    float w1 = s1.w;
+    float z1 = (q2 - t * w1) * iu;  // backsolve
+
+    *s = Spline1(x0, y0, z1, w1);
+
+    float e2 = sqr(s0.w - s1.x);
+    float r0 = s0.z;
+    float r1 = s1.y;
+
+    // To calculate internal error robustly, we look at the reconstruction of q1 from s0/s1, and weight the differences by their size.
+    // This helps avoid epsilon errors when t gets close to 0 or 1.
+    float q1 = u * y0 + t * z1;
+
+    float q10 = (r0 - u * q0) * it;  // r0 = u q0 + t q1  -> q1' = (r0 - u q0) / t
+    float q11 = (r1 - t * q2) * iu;  // r1 = u q1 + t q2  -> q1' = (r1 - t q2) / u
+
+    float e0 = (q10 - q1) * (s0.x - s0.w);
+    float e1 = (q11 - q1) * (s1.x - s1.w);
+
+    e2 += sqr(e0) + sqr(e1);
+
+    return e2 <= 1e-4f * sqr(s0.x - s1.w);  // sq error relative to overall size
+}
+
+Spline1 SL::Trim(const Spline1& splineIn, float t0, float t1)
 {
     SL_ASSERT(t0 <= t1);
-    Spline1 spline(spline_in);
+    Spline1 spline(splineIn);
 
     if (t0 > 0.0f)
     {
@@ -585,36 +655,6 @@ Spline1 SL::Trim(const Spline1& spline_in, float t0, float t1)
     }
 
     return spline;
-}
-
-bool SL::Join(const Spline1& s0, const Spline1& s1, Spline1* sOut)
-{
-    if (s0.w != s1.x) // early out
-        return false;
-
-    // assumes t = 0.5
-
-    // backwards solve from left
-    float x0 =     s0.x;
-    float y0 = 2 * s0.y - x0;
-    float z0 = 4 * s0.z - x0 - 2 * y0;
-    float w0 = 8 * s0.w - x0 - 3 * (y0 + z0);
-
-    // backwards solve from right
-    float w1 =     s1.w;
-    float z1 = 2 * s1.z - w1;
-    float y1 = 4 * s1.y - w1 - 2 * z1;
-    float x1 = 8 * s1.x - w1 - 3 * (y1 + z1);
-
-    float dp = sqr(x0 - x1) + sqr(y0 - y1) + sqr(z0 - z1) + sqr(w0 - w1);
-
-    if (dp < 1e-4f) // do left and right reconstructions agree?
-    {
-        *sOut = Spline1(x0, y0, z1, w1);   // use most stable terms
-        return true;
-    }
-
-    return false;
 }
 
 
@@ -1105,8 +1145,8 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline2 splines[], tEmitLin
 {
     constexpr int kStackSize = 10; // gives us at least 1024 subdivs -- desirable to cap beyond this anyway.
 
-    Spline2 stack [kStackSize];
-    int      stackTop = 0;
+    Spline2 stack[kStackSize];
+    int     stackTop = 0;
 
     Vec2f lineBuffer[kMaxEmitLines][2];
     int   lineBufferCount = 0;
@@ -1117,7 +1157,7 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline2 splines[], tEmitLin
     for (int i = 0; i < numSplines; i++)
     {
         stackTop = 0;
-        stack [stackTop] = splines[i];
+        stack[stackTop] = splines[i];
 
         while (stackTop >= 0)
         {
@@ -1161,9 +1201,9 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline2 splines[], tEmitLin
 {
     constexpr int kStackSize = 10; // gives us at least 1024 subdivs -- desirable to cap beyond this anyway.
 
-    Spline2  stack [kStackSize];
-    Vec2f    stackT[kStackSize];   // for start/end t values
-    int      stackTop = 0;
+    Spline2 stack [kStackSize];
+    Vec2f   stackT[kStackSize];   // for start/end t values
+    int     stackTop = 0;
 
     Vec2f lineBuffer[kMaxEmitLines][2];
     float tvalBuffer[kMaxEmitLines][2];
@@ -1243,9 +1283,19 @@ void SL::Split(const Spline2& spline, float t, Spline2* spline0, Spline2* spline
 
 bool SL::Join(const Spline2& s0, const Spline2& s1, Spline2* splineOut)
 {
-    return
-       Join(s0.xb, s1.xb, &splineOut->xb)
-    && Join(s0.yb, s1.yb, &splineOut->yb);
+    return (int) Join(s0.xb, s1.xb, &splineOut->xb)
+         & (int) Join(s0.yb, s1.yb, &splineOut->yb);  // & to avoid short-circuit
+}
+
+bool SL::Join(const Spline2& s0, const Spline2& s1, float t, Spline2* splineOut)
+{
+    return (int) Join(s0.xb, s1.xb, t, &splineOut->xb)
+         & (int) Join(s0.yb, s1.yb, t, &splineOut->yb);
+}
+
+Spline2 SL::Trim(const Spline2& spline, float t0, float t1)
+{
+    return { Trim(spline.xb, t0, t1), Trim(spline.yb, t0, t1) };
 }
 
 void SL::Split(vector<Spline2>* splinesIn)
@@ -1313,11 +1363,6 @@ void SL::Join(vector<Spline2>* splinesIn)
         splines.push_back(*prevS);
 
     splinesIn->swap(splines);
-}
-
-Spline2 SL::Trim(const Spline2& spline, float t0, float t1)
-{
-    return { Trim(spline.xb, t0, t1), Trim(spline.yb, t0, t1) };
 }
 
 namespace
@@ -2641,8 +2686,8 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline3 splines[], tEmitLin
 {
     constexpr int kStackSize = 10; // gives us at least 1024 subdivs -- desirable to cap beyond this anyway.
 
-    Spline3 stack [kStackSize];
-    int      stackTop = 0;
+    Spline3 stack[kStackSize];
+    int     stackTop = 0;
 
     Vec3f lineBuffer[kMaxEmitLines][2];
     int   lineBufferCount = 0;
@@ -2653,7 +2698,7 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline3 splines[], tEmitLin
     for (int i = 0; i < numSplines; i++)
     {
         stackTop = 0;
-        stack [stackTop] = splines[i];
+        stack[stackTop] = splines[i];
 
         while (stackTop >= 0)
         {
@@ -2698,8 +2743,8 @@ int SL::SplinesToLinesAdaptive(int numSplines, const Spline3 splines[], tEmitLin
     constexpr int kStackSize = 10; // gives us at least 1024 subdivs -- desirable to cap beyond this anyway.
 
     Spline3 stack [kStackSize];
-    Vec2f    stackT[kStackSize];   // for start/end t values
-    int      stackTop = 0;
+    Vec2f   stackT[kStackSize];   // for start/end t values
+    int     stackTop = 0;
 
     Vec3f lineBuffer[kMaxEmitLines][2];
     float tvalBuffer[kMaxEmitLines][2];
@@ -2781,10 +2826,21 @@ void SL::Split(const Spline3& spline, float t, Spline3* spline0, Spline3* spline
 
 bool SL::Join(const Spline3& s0, const Spline3& s1, Spline3* splineOut)
 {
-    return
-       Join(s0.xb, s1.xb, &splineOut->xb)
-    && Join(s0.yb, s1.yb, &splineOut->yb)
-    && Join(s0.zb, s1.zb, &splineOut->zb);
+    return (int) Join(s0.xb, s1.xb, &splineOut->xb)
+         & (int) Join(s0.yb, s1.yb, &splineOut->yb)
+         & (int) Join(s0.zb, s1.zb, &splineOut->zb);  // & to avoid short-circuit
+}
+
+bool SL::Join(const Spline3& s0, const Spline3& s1, float t, Spline3* splineOut)
+{
+    return (int) Join(s0.xb, s1.xb, t, &splineOut->xb)
+         & (int) Join(s0.yb, s1.yb, t, &splineOut->yb)
+         & (int) Join(s0.zb, s1.zb, t, &splineOut->zb);
+}
+
+Spline3 SL::Trim(const Spline3& spline, float t0, float t1)
+{
+    return { Trim(spline.xb, t0, t1), Trim(spline.yb, t0, t1), Trim(spline.zb, t0, t1) };
 }
 
 void SL::Split(vector<Spline3>* splinesIn)
@@ -2852,11 +2908,6 @@ void SL::Join(vector<Spline3>* splinesIn)
         splines.push_back(*prevS);
 
     splinesIn->swap(splines);
-}
-
-Spline3 SL::Trim(const Spline3& spline, float t0, float t1)
-{
-    return { Trim(spline.xb, t0, t1), Trim(spline.yb, t0, t1), Trim(spline.zb, t0, t1) };
 }
 
 namespace

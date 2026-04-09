@@ -104,7 +104,7 @@ int SL::RotSplinesFromDirs(int numAngles, const Vec2f d[], RotSpline2 splines[],
     int base = 0;
     int i0 = 0, i1 = 1, i2 = 2, i3 = 3;
 
-    while (true)
+    if (base < numAngles - 3) do
     {
         *splines++ = RotSplineFromAngles(local, i0, i1, i2, i3, s);
 
@@ -116,6 +116,7 @@ int SL::RotSplinesFromDirs(int numAngles, const Vec2f d[], RotSpline2 splines[],
         local[i3] = ConstrainAngle(local[i2], atan2f(d->y, d->x));
         (char*&) d += stride;
     }
+    while (true);
 
     *splines++ = RotSplineFromAngles(local, i0, i1, i2, i2, s);
 
@@ -339,6 +340,7 @@ namespace
         Quatf q = QuatMult(rs.q0, qd1, qd2, qd3);
         Quatf w = QuatMult(QuatConj(q), qv);
 
+        SL_ASSERT(Equal(w.w, 0.0f));
         return xyz(w);
     }
 #endif
@@ -374,7 +376,7 @@ Vec3f SL::RotVelocity(const RotSpline3& rs, float t)
 
 namespace
 {
-    // Quat/Vector Quat multiply
+    // Vector Quaternion multiply
     inline Quatf QuatMult(const Quatf& a, const Vec3f& b)
     {
         Quatf q;
@@ -470,12 +472,12 @@ Quatf SL::Rotation(Quatf q0, Quatf q1, Quatf q2, Quatf q3, float t)
 Quatf SL::RotationShoemake(const RotSpline3& rs, float t)
 {
     Quatf q0 = rs.q0;
+    Quatf q1 = QuatMult(q0, ExpUnit3(rs.w1));
+    Quatf q2 = QuatMult(q1, ExpUnit3(rs.w2));
 
     // We're saving the acos here, but only in the first round.
     Quatf q01 = QuatMult(q0, ExpUnit3(rs.w1 * t));
-    Quatf q1  = QuatMult(q0, ExpUnit3(rs.w1));
     Quatf q12 = QuatMult(q1, ExpUnit3(rs.w2 * t));
-    Quatf q2  = QuatMult(q1, ExpUnit3(rs.w2));
     Quatf q23 = QuatMult(q2, ExpUnit3(rs.w3 * t));
 
     Quatf q012 = SLerp(q01, q12, t);
@@ -536,6 +538,8 @@ Quatf SL::RotationSQuad(Quatf q0, Quatf q1, Quatf q2, Quatf q3, float t)
 
 void SL::Split(const RotSpline3& rs, float t, RotSpline3* spline0, RotSpline3* spline1)
 {
+    float u = 1 - t;
+
     Quatf qm = Rotation(rs, t);
     Vec3f wm = RotVelocity(rs, t);
 
@@ -545,17 +549,57 @@ void SL::Split(const RotSpline3& rs, float t, RotSpline3* spline0, RotSpline3* s
     Vec3f w0 = RotVelocity0(rs);
     Vec3f w1 = RotVelocity1(rs);
 
-    *spline0 = HermiteRotSpline(q0, qm, w0, wm);
-    *spline1 = HermiteRotSpline(qm, q1, wm, w1);
+    *spline0 = HermiteRotSpline(q0, qm, w0 * t, wm * t);
+    *spline1 = HermiteRotSpline(qm, q1, wm * u, w1 * u);
 }
 
-bool SL::Join(const RotSpline3& rs0, const RotSpline3& rs1, RotSpline3* rs)
+void SL::SplitShoemake(const RotSpline3& rs, float t, RotSpline3* rs0, RotSpline3* rs1)
 {
-    if (rs0.w3 != rs0.w1) // early out
-        return false;
+    Quatf q0 = rs.q0;
+    Quatf q1 = QuatMult(q0, ExpUnit3(rs.w1));
+    Quatf q2 = QuatMult(q1, ExpUnit3(rs.w2));
+    Quatf q3 = QuatMult(q2, ExpUnit3(rs.w3));
 
-    *rs = HermiteRotSpline(Rotation0(rs0), Rotation1(rs1), RotVelocity0(rs0), RotVelocity1(rs1));
-    return true;
+    Quatf q01 = QuatMult(q0, ExpUnit3(rs.w1 * t));
+    Quatf q12 = QuatMult(q1, ExpUnit3(rs.w2 * t));
+    Quatf q23 = QuatMult(q2, ExpUnit3(rs.w3 * t));
+
+    Quatf q012 = SLerp(q01, q12, t);
+    Quatf q123 = SLerp(q12, q23, t);
+
+    Quatf q0123 = SLerp(q012, q123, t);
+
+    *rs0 = BezierRotSpline(q0, q01, q012, q0123);
+    *rs1 = BezierRotSpline(q0123, q123, q23, q3);
+}
+
+bool SL::Join(const RotSpline3& rs0, const RotSpline3& rs1, float t, RotSpline3* rs)
+{
+    if (t <= 0.0f)
+    {
+        *rs = rs1;
+        return true;
+    }
+
+    if (t >= 1.0f)
+    {
+        *rs = rs0;
+        return true;
+    }
+
+    Quatf q1 = Rotation1(rs1);
+    Vec3f w00 = RotVelocity0(rs0);
+    Vec3f w11 = RotVelocity1(rs1);
+
+    float it = 1.0f / t;
+    float iu = 1.0f / (1 - t);
+
+    *rs = HermiteRotSpline(rs0.q0, q1, w00 * it, w11 * iu);
+
+    Vec3f wm0 = rs0.w3 * it;
+    Vec3f wm1 = rs1.w1 * iu;
+
+    return sqrlen(wm0 - wm1) < 1e-6f;
 }
 
 namespace

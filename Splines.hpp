@@ -66,9 +66,11 @@ namespace SL
     Vec4f CubicCoeffs(const Spline1& spline);   // Returns the spline as cubic coefficients, [a, b, c, d]
 
     // Subdivision
-    void Split(const Spline1& spline,          Spline1* spline0, Spline1* spline1); // Splits 'spline' into two halves (at t = 0.5) and stores the results in 'subSplines'
-    void Split(const Spline1& spline, float t, Spline1* spline0, Spline1* spline1); // Fills 'subSplines' with the splines corresponding to [0, t] and [t, 1]
-    bool Join (const Spline1& spline0, const Spline1& spline1, Spline1* spline);    // Joins two splines that were formerly Split(). Assumes t=0.5, returns false if the source splines don't match up.
+    void Split(const Spline1& s,          Spline1* s0, Spline1* s1); // Splits 'spline' into two halves, and stores them in s0 and s1
+    void Split(const Spline1& s, float t, Spline1* s0, Spline1* s1); // Splits 'spline' at t, storing the first part in s0 and the second part in s1.
+
+    bool Join(const Spline1& s0, const Spline1& s1,          Spline1* s); // Joins two splines that were formerly Split() into halves. Returns false if the source splines don't match up.
+    bool Join(const Spline1& s0, const Spline1& s1, float t, Spline1* s); // Joins two splines that were formerly Split() at t. Returns false if the source splines don't match up.
 
     Spline1 Trim(const Spline1& spline, float t0, float t1); // Returns subsection of 'spline' between t0 and t1
 
@@ -141,15 +143,17 @@ namespace SL
     int SplinesToLinesAdaptive(int numSplines, const Spline2 splines[], tEmitLinesExFunc2 emitLines, void* context, float tolerance = 0.05f);
 
     // Subdivision
-    void Split(const Spline2& spline,          Spline2* spline0, Spline2* spline1); // Splits 'spline' into two halves (at t = 0.5) and stores the results in 'subSplines'
-    void Split(const Spline2& spline, float t, Spline2* spline0, Spline2* spline1); // Fills 'subSplines' with the splines corresponding to [0, t] and [t, 1]
-    bool Join (const Spline2& spline0, const Spline2& spline1, Spline2* spline);    // Joins two splines that were formerly Split(). Assumes t=0.5, returns false if the source splines don't match up.
+    void Split(const Spline2& s,          Spline2* s0, Spline2* s1); // Splits 'spline' into two halves, and stores them in s0 and s1
+    void Split(const Spline2& s, float t, Spline2* s0, Spline2* s1); // Splits 'spline' at t, storing the first part in s0 and the second part in s1.
 
-    void Split(std::vector<Spline2>* splines);          // Subdivide each spline into two pieces
-    void Split(std::vector<Spline2>* splines, int n);   // Subdivide each spline into 'n' pieces
-    void Join (std::vector<Spline2>* splines);          // Join adjacent splines where possible
+    bool Join(const Spline2& s0, const Spline2& s1,          Spline2* s); // Joins two splines that were formerly Split() into halves. Returns false if the source splines don't match up.
+    bool Join(const Spline2& s0, const Spline2& s1, float t, Spline2* s); // Joins two splines that were formerly Split() at t. Returns false if the source splines don't match up.
 
     Spline2 Trim(const Spline2& spline, float t0, float t1); // Returns subsection of 'spline' between t0 and t1
+
+    void Split(std::vector<Spline2>* splines);        // Subdivide each spline into two pieces
+    void Split(std::vector<Spline2>* splines, int n); // Subdivide each spline into 'n' pieces
+    void Join (std::vector<Spline2>* splines);        // Join adjacent splines where possible
 
     void SubdivideForLength(std::vector<Spline2>* splines, float relativeError = 0.01f); // Subdivide splines to be close to linear, according to relativeError.
     void SubdivideForT     (std::vector<Spline2>* splines, float error = 0.01f);         // Subdivide splines to be close to linear in t, i.e., arcLength
@@ -264,20 +268,22 @@ namespace SL
     int SplinesToLinesAdaptive(int numSplines, const Spline3 splines[], tEmitLinesExFunc3 emitLines, void* context, float tolerance = 0.05f);
 
     // Subdivision
-    void Split(const Spline3& spline,          Spline3* spline0, Spline3* spline1); // Splits 'spline' into two halves (at t = 0.5) and stores the results in 'subSplines'
-    void Split(const Spline3& spline, float t, Spline3* spline0, Spline3* spline1); // Fills 'subSplines' with the splines corresponding to [0, t] and [t, 1]
-    bool Join (const Spline3& spline0, const Spline3& spline1, Spline3* spline);    // Joins two splines that were formerly Split(). Assumes t=0.5, returns false if the source splines don't match up.
+    void Split(const Spline3& s,          Spline3* s0, Spline3* s1); // Splits 'spline' into two halves, and stores them in s0 and s1
+    void Split(const Spline3& s, float t, Spline3* s0, Spline3* s1); // Splits 'spline' at t, storing the first part in s0 and the second part in s1.
 
-    void Split(std::vector<Spline3>* splines);          // Subdivide each spline into two pieces
-    void Split(std::vector<Spline3>* splines, int n);   // Subdivide each spline into 'n' pieces
-    void Join (std::vector<Spline3>* splines);          // Join adjacent splines where possible
+    bool Join(const Spline3& s0, const Spline3& s1,          Spline3* s); // Joins two splines that were formerly Split() into halves. Returns false if the source splines don't match up.
+    bool Join(const Spline3& s0, const Spline3& s1, float t, Spline3* s); // Joins two splines that were formerly Split() at t. Returns false if the source splines don't match up.
 
     Spline3 Trim(const Spline3& spline, float t0, float t1); // Returns subsection of 'spline' between t0 and t1
 
-    void SubdivideForLength(std::vector<Spline3>* splines, float relativeError = 0.01f);    // Subdivide splines to be close to linear, according to relativeError.
-    void SubdivideForT     (std::vector<Spline3>* splines, float error = 0.01f);            // Subdivide splines to be close to linear in t, i.e., arcLength
+    void Split(std::vector<Spline3>* splines);        // Subdivide each spline into two pieces
+    void Split(std::vector<Spline3>* splines, int n); // Subdivide each spline into 'n' pieces
+    void Join (std::vector<Spline3>* splines);        // Join adjacent splines where possible
 
-    void SubdivideForLengthRatio(std::vector<Vec3f>& positions, float maxRatio = 8.0f);    // Insert additional positions as necessary to ensure no segment is more than 'maxRatio' times its neighbours. Useful as preconditioner for SplinesFromPoints.
+    void SubdivideForLength(std::vector<Spline3>* splines, float relativeError = 0.01f); // Subdivide splines to be close to linear, according to relativeError.
+    void SubdivideForT     (std::vector<Spline3>* splines, float error = 0.01f);         // Subdivide splines to be close to linear in t, i.e., arcLength
+
+    void SubdivideForLengthRatio(std::vector<Vec3f>& positions, float maxRatio = 8.0f);  // Insert additional positions as necessary to ensure no segment is more than 'maxRatio' times its neighbours. Useful as preconditioner for SplinesFromPoints.
 
     // Nearest point
     float FindClosestPoint(Vec3f p, const Spline3& spline); // Returns t value of the closest point on s to 'p'

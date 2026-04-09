@@ -33,6 +33,9 @@ namespace SL
     float AngSpeed       (const RotSpline2& rs, float t);  // Positive angular rotation (mostly for consistency with 3D api below)
     float AngAcceleration(const RotSpline2& rs, float t);  // Positive angular acceleration
 
+    void Split(const RotSpline2& rs, float t, RotSpline2* rs0, RotSpline2* rs1);  // Splits 'rs' into two halves at t, and stores the results in rs0/1. For the default cumulative splines, this can only be approximate on the interiors of the two child splines, though the error is small for most well-behaved paths.
+    bool Join (const RotSpline2& rs0, const RotSpline2& rs1, float t, RotSpline2* rs);  // Re-joins two splines that were formerly Split(). Returns false if the source splines don't match up, while still setting 'rs' to something reasonable.
+
     int RotSplinesFromAngles(int numAngles, const float a[], RotSpline2 splines[], float tension = 0.0f, size_t stride = sizeof(float));
     int RotSplinesFromDirs  (int numDirs  , const Vec2f d[], RotSpline2 splines[], float tension = 0.0f, size_t stride = sizeof(Vec2f));
     // Creates a series of RotSplines that smoothly interpolate the given set of unit quaternions, parameterised by 'tension'.
@@ -76,8 +79,10 @@ namespace SL
     Quatf RotationSQuad(const RotSpline3& rs, float t);
     Quatf RotationSQuad(Quatf q0, Quatf q1, Quatf q2, Quatf q3, float t);  // Note: technically need to set q1/q2 with 1/2 factor rather than 1/3, but not found much difference.
 
-    void Split(const RotSpline3& rs, float t, RotSpline3* rs0, RotSpline3* rs1);    // Splits 'rs' into two halves (at t = 0.5) and stores the results in rs0/1
-    bool Join (const RotSpline3& rs0, const RotSpline3& rs1, RotSpline3* rs);       // Joins two splines that were formerly Split(). Assumes t=0.5, returns false if the source splines don't match up.
+    void Split        (const RotSpline3& rs, float t, RotSpline3* rs0, RotSpline3* rs1);  // Splits 'rs' into two halves at t, and stores the results in rs0/1. For the default cumulative splines, this can only be approximate on the interiors of the two child splines, though the error is small for most well-behaved paths.
+    void SplitShoemake(const RotSpline3& rs, float t, RotSpline3* rs0, RotSpline3* rs1);  // Intended for use with RotationShoemake -- is exact.
+
+    bool Join(const RotSpline3& rs0, const RotSpline3& rs1, float t, RotSpline3* rs);  // Re-joins two splines that were formerly Split(). Returns false if the source splines don't match up, while still setting 'rs' to something reasonable. A Join(Split()) is exact.
 
     int RotSplinesFromQuats(int numQuats, const Quatf qi[], RotSpline3 splines[], float tension = 0.0f, size_t stride = sizeof(Quatf));
     // Creates a series of RotSplines that smoothly interpolate the given set of unit quaternions, parameterised by 'tension'.
