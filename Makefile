@@ -15,4 +15,4 @@ clean:
 
 test: splines_test
 	@./splines_test > test.txt
-	@! (diff test.txt test-ref.txt) || echo "All good"
+	@diff test.txt test-ref.txt && echo "All good"
